@@ -1,0 +1,10 @@
+---
+import LoadVinyls from '../components/LoadVinyls.astro';
+import Layout from '../layouts/Layout.astro';
+---
+<Layout>
+    <!-- Aquí no es necesario client:only para un JS puro -->
+     <client:only>
+    <LoadVinyls />
+</client:only>
+</Layout>

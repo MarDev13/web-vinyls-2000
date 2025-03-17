@@ -1,0 +1,121 @@
+---
+// filepath: c:\Users\María del Mar\Documents\ProyectosAstro\web-vinyls-2000\src\components\LoadVinyls.astro
+const response = await fetch("http://127.0.0.1:8000/api/vinyls");
+const data = await response.json();
+let vinyls = data["member"] || [];
+
+// No necesitamos aquí "gender", ya que se gestionará solo en el cliente más tarde.
+---
+
+<h1 id="vinyl-title" class="text-center text-3xl font-bold my-6 -scroll-mt-80 pt-40">VINILOS MÁS TOP 2000</h1>
+
+<div class="grid grid-cols-3 gap-6 px-10 pt-5 ">
+  {
+    vinyls.length > 0 ? (
+      vinyls.map(
+        (vinyl: {
+          id: number;
+          image: string;
+          title: string;
+          description: string;
+          gender: string;
+          price: number;
+        }) => (
+          <Fragment key={vinyl.id}>
+           			
+	  <a href="#" class="group h-100 flex flex-col items-center  rounded-lg shadow-2xl shadow-green-700   md:flex-row md:max-w-xl  bg-black opacity-70 hover:bg-green-600 hover:scale-105 text-white">
+		<img class="object-cover w-full  h-96 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg"  src={`http://127.0.0.1:8000/vinyl_covers/${vinyl.image}`} alt={vinyl.title} />
+		<div class="flex flex-col justify-between p-4 leading-normal">
+		  <h5 class="mb-2 text-lg font-bold  tracking-tight text-gray-900 dark:text-white group-hover:text-black mt-1">{vinyl.title}</h5>
+		  <p  class=" prose-sm mb-3 text-gray-700 dark:text-gray-400 group-hover:text-black">{vinyl.description}</p>
+		  <div class="bg-green-950 opacity-80 rounded-3xl border-2 ">
+			<h6 class="ml-2 mt-1">Género</h6>
+		  <p class=" ml-2 mb-3 font-normal text-gray-700 dark:text-gray-400 group-hover:text-black">{vinyl.gender}</p>
+		</div>
+				  <p class="mt-5 mb-3 font-normal text-gray-700 dark:text-gray-400 group-hover:text-black">{vinyl.price}$</p>
+		
+		</div>
+	  </a>
+          </Fragment>
+        ),
+      )
+    ) : (
+      <p class="text-center col-span-3 text-lg">
+        No hay vinilos disponibles para esta categoría.
+      </p>
+    )
+  }
+</div>
+
+<!-- Aquí hacemos la solicitud para aplicar el filtro en el lado del cliente -->
+<client:only>
+  <script>
+    // Asegúrate de que solo se ejecuta en el cliente
+    const url = new URL(window.location.href);
+    const gender = url.searchParams.get("gender");
+    console.log("Gender:", gender); // Verifica que el valor de 'gender' está siendo extraído
+
+    if (gender) {
+      // Actualiza el título con el género
+      const titleElement = document.getElementById("vinyl-title");
+      if (titleElement) {
+        titleElement.textContent = `VINILOS MÁS TOP DE LOS 2000 ${gender}`;
+      }
+
+      fetch(`http://127.0.0.1:8000/api/vinyls?gender=${gender}`)
+        .then((response) => response.json())
+        .then((filteredData) => {
+          const filteredVinyls = filteredData["member"] || [];
+
+          // Actualizamos la lista de vinilos en el cliente
+          if (filteredVinyls.length > 0) {
+            const vinylContainer = document.querySelector(".grid");
+            if (vinylContainer) {
+              vinylContainer.innerHTML = ""; // Limpiamos los vinilos anteriores
+            }
+
+            filteredVinyls.forEach(
+              (vinyl: {
+                id: number;
+                image: string;
+                title: string;
+                description: string;
+                gender: string;
+                price: number;
+              }) => {
+                const vinylElement = document.createElement("div");
+                
+                vinylElement.innerHTML = `
+                                         <a href="#" class="group h-100  flex flex-col items-center  rounded-lg shadow-2xl shadow-green-700   md:flex-row md:max-w-xl  bg-black opacity-70 hover:bg-green-600 hover:scale-105 text-white">
+		<img class="object-cover w-full  h-96 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg"  src="http://127.0.0.1:8000/vinyl_covers/${vinyl.image}" alt="${vinyl.title}" />
+		<div class="flex flex-col justify-between p-4 leading-normal">
+		  <h5 class="mb-2 text-lg font-bold  tracking-tight text-gray-900 dark:text-white group-hover:text-black">${vinyl.title}</h5>
+		  <p  class=" prose-sm mb-3 text-gray-700 dark:text-gray-400 group-hover:text-black">${vinyl.description}</p>
+		  <div class="bg-green-950 opacity-80 rounded-3xl border-2 ">
+			<h6 class="ml-2 mt-1">Género</h6>
+		  <p class=" ml-2 mb-3 font-normal text-gray-700 dark:text-gray-400 group-hover:text-black">${vinyl.gender}</p>
+		</div>
+				  <p class="mt-5 mb-3 font-normal text-gray-700 dark:text-gray-400 group-hover:text-black">${vinyl.price}$</p>
+		
+		</div>
+	  </a>
+                            `;
+                if (vinylContainer) {
+                  vinylContainer.appendChild(vinylElement);
+                }
+              },
+            );
+          } else {
+            // Si no hay vinilos para ese género, mostramos el mensaje adecuado
+            const vinylContainer = document.querySelector(".grid");
+            if (vinylContainer) {
+              vinylContainer.innerHTML = `<p class="text-center col-span-3 text-lg">No hay vinilos disponibles para esta categoría.</p>`;
+            }
+          }
+        })
+        .catch((error) =>
+          console.error("Error al cargar los vinilos filtrados:", error),
+        );
+    }
+  </script>
+</client:only>
