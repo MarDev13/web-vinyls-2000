@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # WEB [ Biblioteca vinilos de los 2000 ] 🌟
+=======
+# WEB [ Biblioteca vinilos de los 2000 ] <3
+>>>>>>> cd9900924322201686dd0fe9788285cf4223c12e
 
 ***Desarrollé una web moderna y rápida con Astro, integrada con mi API creada en Symfony. En ella, los usuarios pueden explorar vinilos filtrados por categorías de forma eficiente.***
 
